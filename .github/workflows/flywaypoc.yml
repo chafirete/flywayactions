@@ -1,0 +1,24 @@
+name: Migrate
+
+on:
+  push:
+    branches:
+      - feature/actions
+      - main
+
+jobs:
+  migrate:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Flyway
+        uses: red-gate/flyway-github-action@v1
+        with:
+          args: >
+            -url=jdbc:postgresql://localhost:5432/demo
+            -user=demo
+            -password=demo
+            -locations=filesystem:migrations
+            migrate
