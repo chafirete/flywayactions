@@ -3,6 +3,7 @@ name: Flyway
 on:
   push:
     branches:
+      - feature/actions
       - main
 
 jobs:
