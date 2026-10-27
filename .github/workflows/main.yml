@@ -1,8 +1,7 @@
-name: 'Mock Terraform Pipeline'
+name: 'Mock Terraform Multi-Server Pipeline'
 
 on:
   workflow_dispatch:
-
   push:
     branches:
       - '**'
@@ -19,38 +18,49 @@ jobs:
         run: |
           echo "=========================================="
           echo "Ejecutando: terraform init"
-          echo "Inicializando los plugins y backend..."
           echo "=========================================="
 
       - name: Simulate Terraform Plan
         run: |
           echo "=========================================="
-          echo "Ejecutando: terraform plan"
-          echo "Plan: 2 a agregar, 0 a cambiar, 0 a destruir."
-          echo "Cambios simulados detectados con éxito."
+          echo "Ejecutando: terraform plan general"
+          echo "Plan listo para evaluar destinos."
           echo "=========================================="
 
-  terraform-apply:
-    name: 'Mock Terraform Apply'
+  apply-server-1:
+    name: 'Apply to Server 1'
     needs: terraform-plan
     runs-on: self-hosted
-    # Requiere aprobación manual mediante el entorno protegido en GitHub
-    environment: production
+    # Entorno protegido exclusivo para el Server 1
+    environment: production-server-1
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Simulate Terraform Init
+      - name: Simulate Terraform Apply Server 1
         run: |
           echo "=========================================="
-          echo "Ejecutando: terraform init (Apply phase)"
+          echo "¡Aprobado para Server 1!"
+          echo "Ejecutando: terraform apply -auto-approve (Server 1)"
+          echo "¡Infraestructura aplicada con éxito en Server 1!"
           echo "=========================================="
 
-      - name: Simulate Terraform Apply
+  apply-server-2:
+    name: 'Apply to Server 2'
+    needs: terraform-plan
+    runs-on: self-hosted
+    # Entorno protegido exclusivo para el Server 2
+    environment: production-server-2
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Simulate Terraform Apply Server 2
         run: |
           echo "=========================================="
-          echo "Ejecutando: terraform apply -auto-approve"
-          echo "Aplicando cambios simulados..."
-          echo "¡Infraestructura aplicada con éxito!"
+          echo "¡Aprobado para Server 2!"
+          echo "Ejecutando: terraform apply -auto-approve (Server 2)"
+          echo "¡Infraestructura aplicada con éxito en Server 2!"
           echo "=========================================="
