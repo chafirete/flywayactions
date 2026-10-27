@@ -87,3 +87,4 @@ jobs:
             -password="${{ env.FLYWAY_PASSWORD }}" \
             -locations="${{ env.FLYWAY_LOCATIONS }}" \
             undo
+            
