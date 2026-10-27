@@ -1,0 +1,63 @@
+name: 'Dynamic Terraform Pipeline'
+
+on:
+  workflow_dispatch: 
+
+jobs:
+  # 1. Job encargado de decidir o calcular el servidor durante la ejecución
+  select-target:
+    name: 'Seleccionar Servidor Dinámicamente'
+    runs-on: self-hosted
+    outputs:
+      chosen_server: ${{ steps.set-server.outputs.target_server }}
+    steps:
+      - name: Determinar servidor de destino
+        id: set-server
+        run: |
+          # Aquí puedes poner tu lógica (bash, curl a una API, leer un archivo, etc.)
+          # Por ahora lo simulamos seleccionando un servidor según la rama o una condición:
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            SELECTED_SERVER="servidor-prod-01"
+          else
+            SELECTED_SERVER="servidor-staging-01"
+          fi
+          
+          echo "Servidor seleccionado dinámicamente: $SELECTED_SERVER"
+          
+          # Guardamos el valor en el output del job para que lo lean los demás
+          echo "target_server=$SELECTED_SERVER" >> $GITHUB_OUTPUT
+
+  # 2. Job de Plan que recibe el servidor del job anterior
+  terraform-plan:
+    name: 'Terraform Plan'
+    needs: select-target
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Usar el servidor seleccionado
+        run: |
+          echo "=========================================="
+          echo "Ejecutando Plan para el servidor: ${{ needs.select-target.outputs.chosen_server }}"
+          echo "Ejecutando: terraform plan -var='server=${{ needs.select-target.outputs.chosen_server }}'"
+          echo "=========================================="
+
+  # 3. Job de Apply que también recibe el servidor y mantiene la aprobación manual
+  terraform-apply:
+    name: 'Terraform Apply'
+    needs: [select-target, terraform-plan]
+    runs-on: self-hosted
+    environment: production
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Aplicar en el servidor seleccionado
+        run: |
+          echo "=========================================="
+          echo "Aplicando cambios en el servidor: ${{ needs.select-target.outputs.chosen_server }}"
+          echo "Ejecutando: terraform apply -auto-approve -var='server=${{ needs.select-target.outputs.chosen_server }}'"
+          echo "¡Infraestructura aplicada con éxito!"
+          echo "=========================================="
