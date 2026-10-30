@@ -1,0 +1,125 @@
+name: CI/CD Pipeline Workflow
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - develop
+      - 'release/**'
+      - main
+  workflow_dispatch: # Permite ejecución manual (útil para develop)
+
+jobs:
+  # ==========================================
+  # STAGE 1: PREPARE PIPELINE
+  # ==========================================
+  prepare:
+    name: Prepare Pipeline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Simular preparación del entorno
+        run: |
+          echo "=========================================="
+          echo "[PREPARE] Iniciando pipeline..."
+          echo "Rama actual: ${GITHUB_REF_NAME}"
+          echo "Evento disparador: ${GITHUB_EVENT_NAME}"
+          echo "Preparando dependencias y artefactos base..."
+          echo "=========================================="
+
+  # ==========================================
+  # STAGE 2: STATIC CODE ANALYSIS
+  # ==========================================
+  static-code:
+    name: Static Code Analysis
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Simular análisis estático
+        run: |
+          echo "=========================================="
+          echo "[STATIC CODE] Ejecutando linter y análisis de código estático..."
+          echo "Analizando sintaxis y vulnerabilidades..."
+          echo "¡Análisis completado con éxito sin errores críticos!"
+          echo "=========================================="
+
+  # ==========================================
+  # STAGE 3: CREAR RAMA RELEASE (Opcional/Condicional)
+  # ==========================================
+  create-release-branch:
+    name: Create Release Branch
+    needs: [prepare, static-code]
+    runs-on: ubuntu-latest
+    # Se ejecuta solo si hay un push o ejecución manual en 'develop' para simular la creación de la release
+    if: github.ref == 'refs/heads/develop' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    steps:
+      - name: Simular creación de rama release
+        run: |
+          echo "=========================================="
+          echo "[RELEASE] Creando rama release/1.x a partir de develop..."
+          echo "Simulando comando: git checkout -b release/1.x"
+          echo "Rama release/1.x creada y sincronizada."
+          echo "=========================================="
+
+  # ==========================================
+  # STAGE 4: DEPLOY A DEV (Feature o Develop)
+  # ==========================================
+  deploy-dev:
+    name: Deploy to Dev
+    needs: [prepare, static-code]
+    runs-on: ubuntu-latest
+    # Se ejecuta en branches de tipo feature o en develop
+    if: startsWith(github.ref, 'refs/heads/feature/') || github.ref == 'refs/heads/develop'
+    steps:
+      - name: Simular despliegue en DEV
+        run: |
+          echo "=========================================="
+          echo "[DEPLOY DEV] Desplegando artefacto..."
+          echo "Entorno objetivo: DEV"
+          echo "Rama origen: ${GITHUB_REF_NAME}"
+          echo "¡Artefacto desplegado correctamente en DEV!"
+          echo "=========================================="
+
+  # ==========================================
+  # STAGE 5: DEPLOY A CERTIFICACIÓN (Release)
+  # ==========================================
+  deploy-cert:
+    name: Deploy to Cert
+    needs: [prepare, static-code]
+    runs-on: ubuntu-latest
+    # Se ejecuta cuando los commits entran en ramas que empiezan con release/
+    if: startsWith(github.ref, 'refs/heads/release/')
+    steps:
+      - name: Simular despliegue en CERT
+        run: |
+          echo "=========================================="
+          echo "[DEPLOY CERT] Desplegando artefacto..."
+          echo "Entorno objetivo: CERTIFICACIÓN (CERT)"
+          echo "Rama origen: ${GITHUB_REF_NAME}"
+          echo "¡Artefacto desplegado y listo para pruebas de QA!"
+          echo "=========================================="
+
+  # ==========================================
+  # STAGE 6: DEPLOY A PRODUCCIÓN (Main)
+  # ==========================================
+  deploy-prod:
+    name: Deploy to Prod
+    needs: [prepare, static-code]
+    runs-on: ubuntu-latest
+    # Se ejecuta únicamente en la rama main
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Simular despliegue en PROD
+        run: |
+          echo "=========================================="
+          echo "[DEPLOY PROD] ¡ATENCIÓN: Despliegue en PRODUCCIÓN!"
+          echo "Entorno objetivo: PRODUCTION"
+          echo "Rama origen: ${GITHUB_REF_NAME}"
+          echo "Empaquetando versión final y subiendo a producción..."
+          echo "¡Despliegue a PROD completado exitosamente!"
+          echo "=========================================="
